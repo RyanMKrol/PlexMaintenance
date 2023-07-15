@@ -26,3 +26,6 @@ credentials/*
 !credentials/*.enc
 
 config.json
+
+# IDE folders
+.vscode
