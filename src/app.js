@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { fetchPlexLibraryDetails, fetchTvItemId, fetchTvItemDetails } from './fetch';
 import { haltPromise } from './utils';
 
@@ -8,20 +7,44 @@ import { haltPromise } from './utils';
 async function main() {
   const plexLibraryDetails = await fetchPlexLibraryDetails();
 
-  const data = await plexLibraryDetails.slice(0,2).reduce(async (acc, currentLibItem) => acc.then(async (currentAcc) => {
-    const id = await fetchTvItemId(currentLibItem.title, currentLibItem.year);
-    const deets = await fetchTvItemDetails(id);
+  const plexAndReferenceData = await plexLibraryDetails
+    .reduce(async (acc, currentLibItem) => acc.then(async (currentAcc) => {
+      // wait some time to prevent us overloading the API. do this first in
+      // case we need to short-circuit any action later on
+      await haltPromise(1000);
+      console.log(`Processing: ${currentLibItem.title}...`);
 
-    currentAcc.push({
+      const id = await fetchTvItemId(currentLibItem.title, currentLibItem.year);
+      if (id === null) {
+        console.log('Failed to get data for the following item', currentLibItem.title, currentLibItem.year);
+        return currentAcc;
+      }
+
+      const showDetails = await fetchTvItemDetails(id);
+      if (showDetails === null) {
+        console.log('Failed to get data for the following item', currentLibItem.title, currentLibItem.year);
+        return currentAcc;
+      }
+
+      currentAcc.push({
         plex: currentLibItem,
-        reference: deets
-    })
+        reference: showDetails,
+      });
 
-    // wait some time to prevent us overloading the API
-    await haltPromise(5000);
+      return currentAcc;
+    }), Promise.resolve([]));
 
-    return currentAcc
-  }), Promise.resolve([]));
+  const seasonsToInvestigate = plexAndReferenceData.filter((item) => {
+    const plexSeasons = Number.parseInt(item.plex.season_count, 10);
+    const plexEpisodes = Number.parseInt(item.plex.episode_count, 10);
+
+    const referenceSeasons = item.reference.seasons;
+    const referenceEpisodes = item.reference.episodes;
+
+    return plexSeasons !== referenceSeasons || plexEpisodes !== referenceEpisodes;
+  });
+
+  console.log(seasonsToInvestigate);
 }
 
 main();
