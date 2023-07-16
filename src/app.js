@@ -1,5 +1,6 @@
 import { fetchPlexLibraryDetails, fetchTvItemId, fetchTvItemDetails } from './fetch';
 import { haltPromise } from './utils';
+import NOOP_TITLES from './resources';
 
 /**
  * Main
@@ -8,6 +9,7 @@ async function main() {
   const plexLibraryDetails = await fetchPlexLibraryDetails();
 
   const plexAndReferenceData = await plexLibraryDetails
+    .filter((item) => !NOOP_TITLES.includes(item.title))
     .reduce(async (acc, currentLibItem) => acc.then(async (currentAcc) => {
       // wait some time to prevent us overloading the API. do this first in
       // case we need to short-circuit any action later on
