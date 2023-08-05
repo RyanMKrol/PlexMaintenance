@@ -1,46 +1,26 @@
-{
-  "env": {
-    "browser": true,
-    "es6": true
-  },
-  "extends": ["airbnb-base", "plugin:jsdoc/recommended"],
-  "globals": {
-    "Atomics": "readonly",
-    "SharedArrayBuffer": "readonly"
-  },
-  "parserOptions": {
-    "ecmaVersion": 2018,
-    "sourceType": "module"
-  },
-  "rules": {
-    "no-use-before-define": [
-      "error",
-      {
-        "functions": false
-      }
-    ],
-    "jsdoc/require-description": [
-      "error",
-      {
-        "checkConstructors": false,
-        "contexts": [
-          "ArrowFunctionExpression, ClassDeclaration, ClassExpression, FunctionDeclaration, FunctionExpression, MethodDefinition"
-        ]
-      }
-    ],
-    "jsdoc/require-jsdoc": [
-      "error",
-      {
-        "require": {
-          "ArrowFunctionExpression": true,
-          "ClassDeclaration": true,
-          "ClassExpression": true,
-          "FunctionDeclaration": true,
-          "FunctionExpression": true,
-          "MethodDefinition": true
+module.exports = {
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": "airbnb-base",
+    "overrides": [
+        {
+            "env": {
+                "node": true
+            },
+            "files": [
+                ".eslintrc.{js,cjs}"
+            ],
+            "parserOptions": {
+                "sourceType": "script"
+            }
         }
-      }
     ],
-    "import/no-extraneous-dependencies": "off"
-  }
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "rules": {
+    }
 }
