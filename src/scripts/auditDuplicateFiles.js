@@ -91,6 +91,9 @@ async function parseDuplicateTvEpisodeTitles(televisionLibrary) {
  * For each show, fetches the path to fetch further metadata about each season within the show
  * @param {Array<string>} allShowsMetadataPaths Array of paths to get information about each season
  * @returns {Array<string>} Paths to get metadata for each season
+ * Note: Method is laid out with sequential promises because of an early apprehension
+ * around overloading the local server. Turns out the load is pretty minimal, so the
+ * waits were stripped out, but the sequentail nature of the promise has stayed put
  */
 async function fetchAllSeasonsEpisodesMetadataPaths(allShowsMetadataPaths) {
   return allShowsMetadataPaths.reduce((acc, path) => acc
@@ -124,6 +127,9 @@ async function fetchAllSeasonsEpisodesMetadataPaths(allShowsMetadataPaths) {
  * @param {Array<string>} seasonsEpisodeMetadataPaths The paths of every season's metadata link
  * to get information about the episodes within a season
  * @returns {Array<object>} An array of every episode's video metadata
+ * Note: Method is laid out with sequential promises because of an early apprehension
+ * around overloading the local server. Turns out the load is pretty minimal, so the
+ * waits were stripped out, but the sequentail nature of the promise has stayed put
  */
 async function fetchAllEpisodeMetadata(seasonsEpisodeMetadataPaths) {
   return seasonsEpisodeMetadataPaths
