@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-import { fetchPlexLibraryDetails, fetchTvItemId, fetchTvItemDetails } from '../fetch';
+import { fetchPlexTelevisionLibrarySeasonInformation, fetchTvItemId, fetchTvItemDetails } from '../fetch';
 import { sleep } from '../utils';
 
 import 'dotenv/config';
 
-const plexLibraryDetails = await fetchPlexLibraryDetails();
+const plexLibraryDetails = await fetchPlexTelevisionLibrarySeasonInformation();
 
 const plexAndReferenceData = await plexLibraryDetails
   .filter((item) => !process.env.NOOP_TITLES.includes(item.title))

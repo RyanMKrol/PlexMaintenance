@@ -5,19 +5,53 @@ import { getFromLocalhost, getFromRemoteHost } from '../utils';
 import 'dotenv/config';
 
 /**
- * fetch the library details for my Plex library
- * @returns {Array<object>} An array of plex library items
+ * Fetches XML data from a localhost URL
+ * @param {string} url Where to find the data
+ * @returns {Array<object>} Response
  */
-async function fetchPlexLibraryDetails() {
-  const URL = `https://192.168.1.130:32400/library/sections/5/all?X-Plex-Token=${process.env.PLEX_API_TOKEN}`;
-
-  const response = await getFromLocalhost(URL);
+async function fetchLocalXmlData(url) {
+  const response = await getFromLocalhost(url);
   const data = await response.text();
 
   const parser = new XMLParser({ ignoreAttributes: false });
   const parsed = parser.parse(data);
 
-  const libData = parsed.MediaContainer.Directory.map((item) => ({
+  return parsed;
+}
+
+/**
+ * Fetch the raw library data for my "Movies" library
+ * @returns {Array<object>} An array of plex library items
+ */
+async function fetchRawPlexMovieLibraryData() {
+  return fetchLocalXmlData(`https://192.168.1.130:32400/library/sections/4/all?X-Plex-Token=${process.env.PLEX_API_TOKEN}`);
+}
+
+/**
+ * Fetch the raw library data for my "TV" library
+ * @returns {Array<object>} An array of plex library items
+ */
+async function fetchRawPlexTelevisionLibraryData() {
+  return fetchLocalXmlData(`https://192.168.1.130:32400/library/sections/5/all?X-Plex-Token=${process.env.PLEX_API_TOKEN}`);
+}
+
+/**
+ * Fetch raw library data for a given piece of metadata in my "TV" library
+ * @param {string} path The path to the metadata we want from the TV library
+ * @returns {Array<object>} An array of metadata
+ */
+async function fetchRawPlexTelevisionMetadata(path) {
+  return fetchLocalXmlData(`https://192.168.1.130:32400${path}?X-Plex-Token=${process.env.PLEX_API_TOKEN}`);
+}
+
+/**
+ * Fetch the library details for my Plex library
+ * @returns {Array<object>} An array of plex library items
+ */
+async function fetchPlexTelevisionLibrarySeasonInformation() {
+  const data = await fetchRawPlexTelevisionLibraryData();
+
+  const libData = data.MediaContainer.Directory.map((item) => ({
     title: item['@_title'],
     year: item['@_year'],
     episode_count: item['@_leafCount'],
@@ -64,4 +98,11 @@ async function fetchTvItemDetails(id) {
   };
 }
 
-export { fetchPlexLibraryDetails, fetchTvItemId, fetchTvItemDetails };
+export {
+  fetchRawPlexMovieLibraryData,
+  fetchRawPlexTelevisionLibraryData,
+  fetchRawPlexTelevisionMetadata,
+  fetchPlexTelevisionLibrarySeasonInformation,
+  fetchTvItemId,
+  fetchTvItemDetails,
+};

@@ -41,7 +41,7 @@ async function getFromRemoteHost(url, authToken) {
  * @returns {Promise<void>} A promise to wait on
  */
 // eslint-disable-next-line no-promise-executor-return
-async function sleep(ms) { return new Promise((res) => setTimeout(res, ms)); }
+async function sleep(ms) { console.log(`Sleeping for ${ms / 1000} seconds`); return new Promise((res) => setTimeout(res, ms)); }
 
 export {
   getFromLocalhost,

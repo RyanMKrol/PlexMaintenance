@@ -6,7 +6,8 @@
   "//" : "experimental-specifier-resolution=node allows me to not have to specify .../index.js in my imports",
   "scripts": {
     "lint": "eslint src",
-    "script:auditNewSeasons": "npm run lint && node --experimental-specifier-resolution=node src/scripts/auditNewSeasons"
+    "script:auditNewSeasons": "npm run lint && node --experimental-specifier-resolution=node src/scripts/auditNewSeasons",
+    "script:auditDuplicateFiles": "npm run lint && node --experimental-specifier-resolution=node src/scripts/auditDuplicateFiles"
   },
   "repository": {
     "type": "git",
