@@ -2,7 +2,7 @@
   "name": "plex-maintenance",
   "version": "2.0.0",
   "description": "",
-  "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/RyanMKrol/PlexMaintenance.git"
   },
-  "author": "",
+  "author": "Ryan Krol",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/RyanMKrol/PlexMaintenance/issues"
