@@ -1,9 +1,8 @@
-import fetch from 'node-fetch';
 import https from 'https';
+import fetch from 'node-fetch';
 
 /**
  * Method to fetch data from localhost, needed to get around invalid SSL certs
- *
  * @param {string} url URL to fetch data from
  * @returns {object} blob of data
  */
@@ -22,7 +21,6 @@ async function getFromLocalhost(url) {
 
 /**
  * Fetch data from a remote location using http GET
- *
  * @param {string} url The URL to fetch data from
  * @param {string} authToken The auth bearer token
  * @returns {object} blob of data from remote location
@@ -39,14 +37,14 @@ async function getFromRemoteHost(url, authToken) {
 
 /**
  * Method to halt execution
- *
  * @param {number} ms Time in ms to wait
  * @returns {Promise<void>} A promise to wait on
  */
-async function haltPromise(ms) { return new Promise((res) => setTimeout(res, ms)); }
+// eslint-disable-next-line no-promise-executor-return
+async function sleep(ms) { return new Promise((res) => setTimeout(res, ms)); }
 
 export {
   getFromLocalhost,
   getFromRemoteHost,
-  haltPromise,
+  sleep,
 };
