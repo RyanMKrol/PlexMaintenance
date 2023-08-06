@@ -19,3 +19,21 @@ This script will go through all of the content on the server and flag anything t
 ### Auditing New Seasons
 
 This script helps to notify me when tv shows I have copies of have released new seasons. This becomes quite a cumbersome exercise to do manually, but this script cuts down the time spent significantly.
+
+## Running
+
+To setup the repo, do the following:
+
+1. Pull the repo
+    1. `git clone https://github.com/RyanMKrol/PlexMaintenance`
+1. Head to the repo
+    1. `cd PlexMaintenance`
+1. Install dependencies
+    1. `npm install`
+1. Pull credentials
+    1. `npx dotenv-vault@latest pull`
+1. Run a script
+    1. `npm run script:auditAll`
+    1. `npm run script:auditDuplicateFiles`
+    1. `npm run script:auditFileBitrates`
+    1. `npm run script:auditNewSeasons`
