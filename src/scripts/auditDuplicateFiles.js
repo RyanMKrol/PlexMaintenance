@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { fetchRawPlexMovieLibraryData, fetchRawPlexTelevisionLibraryData, fetchRawPlexTelevisionMetadata } from '../fetch';
+import { fetchRawPlexMovieLibraryData, fetchRawPlexTelevisionLibraryData, fetchEpisodesVideoMetadata } from '../fetch';
 
 import 'dotenv/config';
 
@@ -37,11 +37,8 @@ async function parseDuplicateTvEpisodeTitles(televisionLibrary) {
   const seasonMetadataPaths = televisionLibrary.MediaContainer.Directory
     .map((x) => x['@_key']);
 
-  // paths to get information about each show's season's episodes
-  const allEpisodesMetadataPaths = await fetchAllSeasonsEpisodesMetadataPaths(seasonMetadataPaths);
-
   // metadata for each episode
-  const allEpisodesMetadata = await fetchAllEpisodeMetadata(allEpisodesMetadataPaths);
+  const allEpisodesMetadata = await fetchEpisodesVideoMetadata(seasonMetadataPaths);
 
   return allEpisodesMetadata.reduce((acc, episodeData) => {
     if (episodeData.Media.length > 1) {
@@ -85,59 +82,4 @@ async function parseDuplicateTvEpisodeTitles(televisionLibrary) {
     }
     return acc;
   }, {});
-}
-
-/**
- * For each show, fetches the path to fetch further metadata about each season within the show
- * @param {Array<string>} allShowsMetadataPaths Array of paths to get information about each season
- * @returns {Array<string>} Paths to get metadata for each season
- * Note: Method is laid out with sequential promises because of an early apprehension
- * around overloading the local server. Turns out the load is pretty minimal, so the
- * waits were stripped out, but the sequentail nature of the promise has stayed put
- */
-async function fetchAllSeasonsEpisodesMetadataPaths(allShowsMetadataPaths) {
-  return allShowsMetadataPaths.reduce((acc, path) => acc
-    .then((newAcc) => fetchRawPlexTelevisionMetadata(path)
-      .then(async (data) => {
-        const title = data.MediaContainer['@_title2'];
-        const showSeasonsMetadata = Array.isArray(data.MediaContainer.Directory)
-          ? data.MediaContainer.Directory
-          : [data.MediaContainer.Directory];
-
-        // when there are a lot of seasons in a show, an artificial season
-        // for "all episodes" is plugged into the array, let's remove those
-        const showSeasonsMetadataAllSeason = showSeasonsMetadata.filter((metadata) => {
-          const maybeSeasonTitle = metadata['@_title'];
-          const isSeasonActualSeason = !!metadata['@_type'];
-
-          if (!isSeasonActualSeason && maybeSeasonTitle.toLowerCase() !== 'all episodes') {
-            console.error(`We're skipping something we haven't seen before: ${maybeSeasonTitle}, for show with name ${title}`);
-          }
-
-          return isSeasonActualSeason;
-        });
-
-        return newAcc.concat(showSeasonsMetadataAllSeason.map((x) => x['@_key']));
-      })), Promise.resolve([]));
-}
-
-/**
- * Fetches a giant array of metadata for every episode of a video,
- * for all of the seasons' metadata paths provided
- * @param {Array<string>} seasonsEpisodeMetadataPaths The paths of every season's metadata link
- * to get information about the episodes within a season
- * @returns {Array<object>} An array of every episode's video metadata
- * Note: Method is laid out with sequential promises because of an early apprehension
- * around overloading the local server. Turns out the load is pretty minimal, so the
- * waits were stripped out, but the sequentail nature of the promise has stayed put
- */
-async function fetchAllEpisodeMetadata(seasonsEpisodeMetadataPaths) {
-  return seasonsEpisodeMetadataPaths
-    .reduce(
-      (acc, path) => acc
-        .then((newAcc) => fetchRawPlexTelevisionMetadata(path)
-          .then(async (data) => newAcc.concat([data.MediaContainer.Video]))),
-      Promise.resolve([]),
-    )
-    .then((data) => data.flat());
 }
