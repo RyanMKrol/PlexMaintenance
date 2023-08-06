@@ -3,17 +3,21 @@ import { fetchRawPlexMovieLibraryData, fetchRawPlexTelevisionLibraryData, fetchE
 
 import 'dotenv/config';
 
-const plexMovieLibrary = await fetchRawPlexMovieLibraryData();
-const plexTelevisionLibrary = await fetchRawPlexTelevisionLibraryData();
+(async function main() {
+  console.log('Auditing Duplicate Files...');
 
-const dupeMoviesTitles = parseDuplicateMoviesTitles(plexMovieLibrary);
-const dupeTvEpisodesTitles = await parseDuplicateTvEpisodeTitles(plexTelevisionLibrary);
+  const plexMovieLibrary = await fetchRawPlexMovieLibraryData();
+  const plexTelevisionLibrary = await fetchRawPlexTelevisionLibraryData();
 
-console.log('Here are your movies that may have duplicated media files:');
-console.log(JSON.stringify(dupeMoviesTitles, null, 2));
+  const dupeMoviesTitles = parseDuplicateMoviesTitles(plexMovieLibrary);
+  const dupeTvEpisodesTitles = await parseDuplicateTvEpisodeTitles(plexTelevisionLibrary);
 
-console.log('Here are your tv episodes that may have duplicated media files:');
-console.log(JSON.stringify(dupeTvEpisodesTitles, null, 2));
+  console.log('Here are your movies that may have duplicated media files:');
+  console.log(JSON.stringify(dupeMoviesTitles, null, 2));
+
+  console.log('Here are your tv episodes that may have duplicated media files:');
+  console.log(JSON.stringify(dupeTvEpisodesTitles, null, 2));
+}());
 
 /**
  * Parses movies that have more than one media entry

@@ -5,23 +5,27 @@ import 'dotenv/config';
 
 const SPECIFIED_BITRATE = 3000;
 
-const plexMovieLibrary = await fetchRawPlexMovieLibraryData();
-const plexTelevisionLibrary = await fetchRawPlexTelevisionLibraryData();
+(async function main() {
+  console.log('Auditing File Bitrates...');
 
-const moviesNotMeetingBitrateThreshold = parseMoviesWithBitrateThreshold(
-  plexMovieLibrary,
-  SPECIFIED_BITRATE,
-);
-const episodesNotMeetingBitrateThreshold = await parseEpisodesWithBitrateThreshold(
-  plexTelevisionLibrary,
-  SPECIFIED_BITRATE,
-);
+  const plexMovieLibrary = await fetchRawPlexMovieLibraryData();
+  const plexTelevisionLibrary = await fetchRawPlexTelevisionLibraryData();
 
-console.log('These movies do not meet the specified bitrate:');
-console.log(JSON.stringify(moviesNotMeetingBitrateThreshold, null, 2));
+  const moviesNotMeetingBitrateThreshold = parseMoviesWithBitrateThreshold(
+    plexMovieLibrary,
+    SPECIFIED_BITRATE,
+  );
+  const episodesNotMeetingBitrateThreshold = await parseEpisodesWithBitrateThreshold(
+    plexTelevisionLibrary,
+    SPECIFIED_BITRATE,
+  );
 
-console.log('These episodes do not meet the specified bitrate:');
-console.log(JSON.stringify(episodesNotMeetingBitrateThreshold, null, 2));
+  console.log('These movies do not meet the specified bitrate:');
+  console.log(JSON.stringify(moviesNotMeetingBitrateThreshold, null, 2));
+
+  console.log('These episodes do not meet the specified bitrate:');
+  console.log(JSON.stringify(episodesNotMeetingBitrateThreshold, null, 2));
+}());
 
 /**
  * Audits movies that are below the specified bitrate
