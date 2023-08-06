@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { fetchRawPlexMovieLibraryData, fetchRawPlexTelevisionLibraryData, fetchEpisodesVideoMetadata } from '../fetch';
+import { fetchRawPlexMovieLibraryData, fetchRawPlexTelevisionLibraryData, fetchEpisodesVideoMetadata } from '../remote';
 
 import 'dotenv/config';
 

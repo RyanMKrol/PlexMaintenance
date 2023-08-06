@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { fetchPlexTelevisionLibrarySeasonInformation, fetchTvItemId, fetchTvItemDetails } from '../fetch';
+import { fetchPlexTelevisionLibrarySeasonInformation, fetchTvItemId, fetchTvItemDetails } from '../remote';
 import { sleep } from '../utils';
 
 import 'dotenv/config';
