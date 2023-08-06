@@ -5,11 +5,14 @@
   "type": "module",
   "//" : "experimental-specifier-resolution=node allows me to not have to specify .../index.js in my imports",
   "scripts": {
+    "_auditDuplicateFiles": "node --experimental-specifier-resolution=node src/scripts/auditDuplicateFiles",
+    "_auditFileBitrates": "node --experimental-specifier-resolution=node src/scripts/auditFileBitrates",
+    "_auditNewSeasons": "node --experimental-specifier-resolution=node src/scripts/auditNewSeasons",
     "lint": "eslint src",
-    "script:auditAll": "npm run script:auditDuplicateFiles && npm run script:auditFileBitrates && npm run script:auditNewSeasons",
-    "script:auditDuplicateFiles": "npm run lint && node --experimental-specifier-resolution=node src/scripts/auditDuplicateFiles",
-    "script:auditFileBitrates": "npm run lint && node --experimental-specifier-resolution=node src/scripts/auditFileBitrates",
-    "script:auditNewSeasons": "npm run lint && node --experimental-specifier-resolution=node src/scripts/auditNewSeasons"
+    "script:auditAll": "npm run lint && npm run _auditDuplicateFiles && npm run _auditFileBitrates && npm run _auditNewSeasons",
+    "script:auditDuplicateFiles": "npm run lint && npm run _auditDuplicateFiles",
+    "script:auditFileBitrates": "npm run lint && npm run _auditFileBitrates",
+    "script:auditNewSeasons": "npm run lint && npm run _auditNewSeasons"
   },
   "repository": {
     "type": "git",
