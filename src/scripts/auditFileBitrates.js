@@ -87,7 +87,6 @@ function parseMoviesWithBitrateThreshold(movieLibrary) {
 /**
  * Audits tv episodes that are below the specified bitrate
  * @param {Array<object>} showsLibrary Every show item
- * @param {number} requiredBitrate The bitrate threshold
  * @returns {object} The episodes that don't hit the bitrate target
  *
  * The output will look something like:

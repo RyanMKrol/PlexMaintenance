@@ -4,7 +4,6 @@ import chalk from 'chalk';
  * Cleans up the data for the bitrate script's movie data, and returns an array of strings
  * that are easier to parse
  * @param {Array<object>} data array of objects with the title and bitrate of a movie
- * @param {number} bitrateThreshold the target bitrate
  * @returns {Array<string>} An array of strings to be printed out
  *
  * Output will look like:
@@ -46,7 +45,6 @@ function produceMovieBitrateReport(data) {
  * Cleans up the data for the bitrate script's tv data, and returns an array of strings
  * that are easier to parse
  * @param {Array<object>} data array of objects with the title and bitrate of a movie
- * @param {number} bitrateThreshold the target bitrate
  * @returns {Array<string>} An array of strings to be printed out
  *
  * Output will look like:
