@@ -49,25 +49,27 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) 
   // metadata for each episode
   const allEpisodesMetadata = await fetchEpisodesVideoMetadata(seasonMetadataPaths);
 
-  return allEpisodesMetadata.reduce((acc, episodeData) => {
-    const showName = episodeData['@_grandparentTitle'];
-    const seasonName = episodeData['@_parentTitle'];
-    const episodeName = episodeData['@_title'];
-    const episodeBitrate = episodeData.Media['@_bitrate'];
+  const episodesNotMeetingThreshold = allEpisodesMetadata
+    .filter((episodeData) => !Array.isArray(episodeData.Media) && episodeData.Media['@_bitrate'] < requiredBitrate);
 
-    // episodes with multiple media should be disregarded
-    if (Array.isArray(episodeData.Media)) {
-      console.log(`${showName}, ${seasonName}, ${episodeName} has more than one media, skipping`);
-      return acc;
-    }
+  const maxEpisodeTitleLength = episodesNotMeetingThreshold
+    .reduce((acc, episode) => (acc > episode['@_title'].length ? acc : episode['@_title'].length), 0);
 
-    if (episodeBitrate < requiredBitrate) {
+  return episodesNotMeetingThreshold
+    .reduce((acc, episodeData) => {
+      const showName = episodeData['@_grandparentTitle'];
+      const seasonName = episodeData['@_parentTitle'];
+      const episodeName = episodeData['@_title'];
+      const episodeBitrate = episodeData.Media['@_bitrate'];
+
+      const paddedEpisodeName = episodeName.padEnd(maxEpisodeTitleLength, ' ');
+
       // pop a new entry in for the show
       if (!acc[showName]) {
         return {
           ...acc,
           [showName]: {
-            [seasonName]: [`${episodeName} - ${episodeBitrate}`],
+            [seasonName]: [`${paddedEpisodeName} - ${episodeBitrate}`],
           },
         };
       }
@@ -78,7 +80,7 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) 
           ...acc,
           [showName]: {
             ...acc[showName],
-            [seasonName]: [`${episodeName} - ${episodeBitrate}`],
+            [seasonName]: [`${paddedEpisodeName} - ${episodeBitrate}`],
           },
         };
       }
@@ -91,11 +93,9 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) 
           ...acc[showName],
           [seasonName]: [
             ...acc[showName][seasonName],
-            `${episodeName} - ${episodeBitrate}`,
+            `${paddedEpisodeName} - ${episodeBitrate}`,
           ],
         },
       };
-    }
-    return acc;
-  }, {});
+    }, {});
 }
