@@ -30,7 +30,7 @@ function parseDuplicateMoviesTitles(movieLibrary) {
 /**
  * Parses tv episodes that have more than one media entry
  * @param {Array<object>} televisionLibrary Every television item
- * @returns {Array<string>} The titles of tv episodes with more than one underlying file
+ * @returns {Array<object>} The episodes with more than one underlying file
  */
 async function parseDuplicateTvEpisodeTitles(televisionLibrary) {
   // paths to get information about each show's seasons
