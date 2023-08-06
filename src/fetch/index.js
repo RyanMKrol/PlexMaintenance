@@ -1,24 +1,6 @@
-import { XMLParser } from 'fast-xml-parser';
-
-import { getFromLocalhost, getFromRemoteHost } from '../utils';
+import { getFromRemoteHost, fetchLocalXmlData } from '../utils';
 
 import 'dotenv/config';
-
-/**
- * Fetches XML data from a localhost URL
- * @param {string} url Where to find the data
- * @returns {Array<object>} Response
- */
-async function fetchLocalXmlData(url) {
-  const response = await getFromLocalhost(url);
-  const data = await response.text();
-
-  const parser = new XMLParser({ ignoreAttributes: false });
-  const parsed = parser.parse(data);
-
-  return parsed;
-}
-
 /**
  * Fetch the raw library data for my "Movies" library
  * @returns {Array<object>} An array of plex library items

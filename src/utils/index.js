@@ -1,5 +1,21 @@
 import https from 'https';
 import fetch from 'node-fetch';
+import { XMLParser } from 'fast-xml-parser';
+
+/**
+ * Fetches XML data from a localhost URL
+ * @param {string} url Where to find the data
+ * @returns {Array<object>} Response
+ */
+async function fetchLocalXmlData(url) {
+  const response = await getFromLocalhost(url);
+  const data = await response.text();
+
+  const parser = new XMLParser({ ignoreAttributes: false });
+  const parsed = parser.parse(data);
+
+  return parsed;
+}
 
 /**
  * Method to fetch data from localhost, needed to get around invalid SSL certs
@@ -44,6 +60,7 @@ async function getFromRemoteHost(url, authToken) {
 async function sleep(ms) { console.log(`Sleeping for ${ms / 1000} seconds`); return new Promise((res) => setTimeout(res, ms)); }
 
 export {
+  fetchLocalXmlData,
   getFromLocalhost,
   getFromRemoteHost,
   sleep,
