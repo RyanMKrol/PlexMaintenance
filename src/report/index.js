@@ -23,19 +23,21 @@ function produceMovieBitrateReport(data) {
 
   const seasonTitleString = 'Title'.padEnd(titlePaddingLength, ' ');
   const resolutionTitleString = 'Resolution ';
+  const fileSizeTitleString = 'File Size (Mb) ';
   const bitrateThresholdTitleString = 'Bitrate Threshold ';
   const bitrateTitleString = 'Bitrate ';
 
-  outputStrings.push(`${seasonTitleString}${resolutionTitleString}${bitrateThresholdTitleString}${bitrateTitleString}`);
+  outputStrings.push(`${seasonTitleString}${resolutionTitleString}${fileSizeTitleString}${bitrateThresholdTitleString}${bitrateTitleString}`);
 
   // return an array of movie titles, and bitrates with colour applied to the bitrate
   data.forEach((item) => {
     const titleString = item.title.padEnd(titlePaddingLength, ' ');
     const resolutionString = item.resolution.padEnd(resolutionTitleString.length, ' ');
+    const fileSizeMbString = `${item.fileSizeMb}`.padEnd(fileSizeTitleString.length, ' ');
     const requiredBitrateString = `${item.bitrateThreshold}`.padEnd(bitrateThresholdTitleString.length, ' ');
     const bitrateString = getBitrateStringDecorationFn(item.bitrate, item.bitrateThreshold)(`${item.bitrate}`);
 
-    outputStrings.push(`${titleString}${resolutionString}${requiredBitrateString}${bitrateString}`);
+    outputStrings.push(`${titleString}${resolutionString}${fileSizeMbString}${requiredBitrateString}${bitrateString}`);
   });
 
   return outputStrings;
@@ -73,18 +75,20 @@ function produceTvBitrateReport(data) {
 
       const seasonTitleString = `${`└── ${season}`.padEnd(episodeTitlePaddingLength + 8, ' ')} `;
       const resolutionTitleString = 'Resolution ';
+      const fileSizeTitleString = 'File Size (Mb) ';
       const bitrateThresholdTitleString = 'Bitrate Threshold ';
       const bitrateTitleString = 'Bitrate ';
 
-      outputStrings.push(`${seasonTitleString} | ${resolutionTitleString} | ${bitrateThresholdTitleString} | ${bitrateTitleString}`);
+      outputStrings.push(`${seasonTitleString} | ${resolutionTitleString} | ${fileSizeTitleString} | ${bitrateThresholdTitleString} | ${bitrateTitleString}`);
 
       episodes.forEach((episode) => {
         const titleString = episode.title.padEnd(episodeTitlePaddingLength, ' ');
         const bitrateString = getBitrateStringDecorationFn(episode.bitrate, episode.bitrateThreshold)(`${episode.bitrate}`);
         const resolutionString = episode.resolution.padEnd(resolutionTitleString.length, ' ');
+        const fileSizeMbString = `${episode.fileSizeMb}`.padEnd(fileSizeTitleString.length, ' ');
         const requiredBitrateString = `${episode.bitrateThreshold}`.padEnd(bitrateThresholdTitleString.length, ' ');
         outputStrings.push(
-          `    └── ${titleString}  | ${resolutionString} | ${requiredBitrateString} | ${bitrateString}`,
+          `    └── ${titleString}  | ${resolutionString} | ${fileSizeMbString} | ${requiredBitrateString} | ${bitrateString}`,
         );
       });
     });
@@ -103,12 +107,16 @@ function produceTvBitrateReport(data) {
  */
 function getBitrateStringDecorationFn(itemBitrate, bitrateThreshold) {
   if (itemBitrate < bitrateThreshold / 4) {
+    // red
     return chalk.whiteBright.bgRedBright.bold;
   } if (itemBitrate < bitrateThreshold / 2) {
+    // orange
     return chalk.blackBright.bgRgb(255, 140, 0).bold;
   } if (itemBitrate < ((bitrateThreshold * 3) / 4)) {
+    // yellow
     return chalk.blackBright.bgYellowBright.bold;
   }
+  // green
   return chalk.blackBright.bgRgb(46, 139, 87).bold;
 }
 

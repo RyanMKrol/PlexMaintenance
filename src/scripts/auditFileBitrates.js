@@ -66,6 +66,7 @@ function parseMoviesWithBitrateThreshold(movieLibrary) {
       const title = plexVideoUtils.getTitle(videoMetadata);
       const mediaMetadata = plexVideoUtils.getMedia(videoMetadata);
 
+      const fileSizeMb = plexMediaUtils.getMediaFileSizeMb(mediaMetadata);
       const bitrate = plexMediaUtils.getMediaBitrate(mediaMetadata);
       const resolution = plexMediaUtils.getMediaResolution(mediaMetadata);
 
@@ -76,6 +77,7 @@ function parseMoviesWithBitrateThreshold(movieLibrary) {
         bitrate,
         resolution,
         bitrateThreshold,
+        fileSizeMb,
       };
     });
 }
@@ -114,6 +116,7 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary) {
       const seasonName = plexVideoUtils.getParentTitle(episodeVideoMetadata);
       const episodeName = plexVideoUtils.getTitle(episodeVideoMetadata);
 
+      const fileSizeMb = plexMediaUtils.getMediaFileSizeMb(mediaMetadata);
       const bitrate = plexMediaUtils.getMediaBitrate(mediaMetadata);
       const resolution = plexMediaUtils.getMediaResolution(mediaMetadata);
       const bitrateThreshold = RESOLUTION_TO_REQUIRED_BITRATE_MAPPING[resolution];
@@ -124,7 +127,7 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary) {
           ...acc,
           [showName]: {
             [seasonName]: [{
-              title: episodeName, bitrate, bitrateThreshold, resolution,
+              title: episodeName, bitrate, bitrateThreshold, resolution, fileSizeMb,
             }],
           },
         };
@@ -137,7 +140,7 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary) {
           [showName]: {
             ...acc[showName],
             [seasonName]: [{
-              title: episodeName, bitrate, bitrateThreshold, resolution,
+              title: episodeName, bitrate, bitrateThreshold, resolution, fileSizeMb,
             }],
           },
         };
@@ -152,7 +155,7 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary) {
           [seasonName]: [
             ...acc[showName][seasonName],
             {
-              title: episodeName, bitrate, bitrateThreshold, resolution,
+              title: episodeName, bitrate, bitrateThreshold, resolution, fileSizeMb,
             },
           ],
         },

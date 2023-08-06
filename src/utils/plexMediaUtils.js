@@ -16,4 +16,21 @@ function getMediaResolution(media) {
   return media['@_videoResolution'];
 }
 
-export { getMediaBitrate, getMediaResolution };
+/**
+ * Pulls the size of the media in Megabits
+ * @param {object} media Plex Media object
+ * @returns {number} The size of the file in Mb to 2 dp
+ */
+function getMediaFileSizeMb(media) {
+  if (Array.isArray(media.Part)) {
+    console.log('Media has mulitple parts, cannot determine filesize');
+    return 0;
+  }
+
+  const sizeMb = media.Part['@_size'] / 1000000;
+
+  // rounds number to 2dp
+  return Math.round(sizeMb * 100) / 100;
+}
+
+export { getMediaBitrate, getMediaResolution, getMediaFileSizeMb };
