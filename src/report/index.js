@@ -9,9 +9,11 @@ import chalk from 'chalk';
  *
  * Output will look like:
  * Movie with an extra long name that goes all the way out here - 920
- * Movie with a shorter nanem                                   - 2110
+ * Movie with a shorter nane                                    - 2110
  */
-function produceMovieBitrateReport(data, bitrateThreshold) {
+function produceMovieBitrateReport(data) {
+  const outputStrings = [];
+
   // display items in ascending order of bitrates
   data.sort((a, b) => (a.bitrate < b.bitrate ? -1 : a.bitrate === b.bitrate ? 0 : 1));
 
@@ -20,8 +22,24 @@ function produceMovieBitrateReport(data, bitrateThreshold) {
     (max, item) => (max > item.title.length ? max : item.title.length),
   );
 
+  const seasonTitleString = 'Title'.padEnd(titlePaddingLength, ' ');
+  const resolutionTitleString = 'Resolution ';
+  const bitrateThresholdTitleString = 'Bitrate Threshold ';
+  const bitrateTitleString = 'Bitrate ';
+
+  outputStrings.push(`${seasonTitleString}${resolutionTitleString}${bitrateThresholdTitleString}${bitrateTitleString}`);
+
   // return an array of movie titles, and bitrates with colour applied to the bitrate
-  return data.map((item) => `${item.title.padEnd(titlePaddingLength, ' ')} - ${getBitrateStringDecorationFn(item.bitrate, bitrateThreshold)(item.bitrate)}`);
+  data.forEach((item) => {
+    const titleString = item.title.padEnd(titlePaddingLength, ' ');
+    const resolutionString = item.resolution.padEnd(resolutionTitleString.length, ' ');
+    const requiredBitrateString = `${item.bitrateThreshold}`.padEnd(bitrateThresholdTitleString.length, ' ');
+    const bitrateString = getBitrateStringDecorationFn(item.bitrate, item.bitrateThreshold)(`${item.bitrate}`);
+
+    outputStrings.push(`${titleString}${resolutionString}${requiredBitrateString}${bitrateString}`);
+  });
+
+  return outputStrings;
 }
 
 /**
@@ -40,7 +58,7 @@ function produceMovieBitrateReport(data, bitrateThreshold) {
  *     └── The Duke                       2742
  *     └── Freak City                     2596
  */
-function produceTvBitrateReport(data, bitrateThreshold) {
+function produceTvBitrateReport(data) {
   const outputStrings = [];
 
   const showTitles = Object.keys(data);
@@ -49,17 +67,26 @@ function produceTvBitrateReport(data, bitrateThreshold) {
 
     const seasons = Object.keys(data[showTitle]);
     seasons.forEach((season) => {
-      outputStrings.push(`└── ${season}`);
-
       const episodes = data[showTitle][season];
 
-      const episodeTitlePaddingLength = episodes.reduce(
+      const episodeTitlePaddingLength = (episodes.reduce(
         (max, item) => (max > item.title.length ? max : item.title.length),
-      );
+      )) + 1;
+
+      const seasonTitleString = `${`└── ${season}`.padEnd(episodeTitlePaddingLength + 8, ' ')} `;
+      const resolutionTitleString = 'Resolution ';
+      const bitrateThresholdTitleString = 'Bitrate Threshold ';
+      const bitrateTitleString = 'Bitrate ';
+
+      outputStrings.push(`${seasonTitleString} | ${resolutionTitleString} | ${bitrateThresholdTitleString} | ${bitrateTitleString}`);
 
       episodes.forEach((episode) => {
+        const titleString = episode.title.padEnd(episodeTitlePaddingLength, ' ');
+        const bitrateString = getBitrateStringDecorationFn(episode.bitrate, episode.bitrateThreshold)(`${episode.bitrate}`);
+        const resolutionString = episode.resolution.padEnd(resolutionTitleString.length, ' ');
+        const requiredBitrateString = `${episode.bitrateThreshold}`.padEnd(bitrateThresholdTitleString.length, ' ');
         outputStrings.push(
-          `    └── ${episode.title.padEnd(episodeTitlePaddingLength, ' ')} ${getBitrateStringDecorationFn(episode.bitrate, bitrateThreshold)(episode.bitrate)}`,
+          `    └── ${titleString}  | ${resolutionString} | ${requiredBitrateString} | ${bitrateString}`,
         );
       });
     });

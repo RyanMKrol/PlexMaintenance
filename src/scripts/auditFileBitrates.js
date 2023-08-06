@@ -1,8 +1,23 @@
 #!/usr/bin/env node
 import { fetchRawPlexMovieLibraryData, fetchRawPlexTelevisionLibraryData, fetchEpisodesVideoMetadata } from '../remote';
+import { produceMovieBitrateReport, produceTvBitrateReport } from '../report';
+import * as plexMediaUtils from '../utils/plexMediaUtils';
+import * as plexVideoUtils from '../utils/plexVideoUtils';
 
 import 'dotenv/config';
-import { produceMovieBitrateReport, produceTvBitrateReport } from '../report';
+
+const RESOLUTION_TO_REQUIRED_BITRATE_MAPPING = {
+  '4k': 40000,
+  '2k': 16000,
+  // eslint-disable-next-line quote-props
+  '1080': 8000,
+  // eslint-disable-next-line quote-props
+  '720': 5000,
+  // eslint-disable-next-line quote-props
+  '576': 2500,
+};
+
+console.log(RESOLUTION_TO_REQUIRED_BITRATE_MAPPING);
 
 const SPECIFIED_BITRATE = 3000;
 
@@ -12,10 +27,7 @@ const SPECIFIED_BITRATE = 3000;
   const plexMovieLibrary = await fetchRawPlexMovieLibraryData();
   const plexTelevisionLibrary = await fetchRawPlexTelevisionLibraryData();
 
-  const moviesNotMeetingBitrateThreshold = parseMoviesWithBitrateThreshold(
-    plexMovieLibrary,
-    SPECIFIED_BITRATE,
-  );
+  const moviesNotMeetingBitrateThreshold = parseMoviesWithBitrateThreshold(plexMovieLibrary);
 
   const episodesNotMeetingBitrateThreshold = await parseEpisodesWithBitrateThreshold(
     plexTelevisionLibrary,
@@ -23,10 +35,7 @@ const SPECIFIED_BITRATE = 3000;
   );
 
   console.log('\n====== Flagging these movies for bitrate:');
-  const movieReport = produceMovieBitrateReport(
-    moviesNotMeetingBitrateThreshold,
-    SPECIFIED_BITRATE,
-  );
+  const movieReport = produceMovieBitrateReport(moviesNotMeetingBitrateThreshold);
   movieReport.forEach((item) => console.log(item));
 
   console.log('\n====== Flagging these tv episodes for bitrate:');
@@ -40,7 +49,6 @@ const SPECIFIED_BITRATE = 3000;
 /**
  * Audits movies that are below the specified bitrate
  * @param {Array<object>} movieLibrary Every movie item
- * @param {number} requiredBitrate The bitrate threshold
  * @returns {Array<object>} The movies that don't meet the bitrate target
  *
  * The output will look something like:
@@ -55,13 +63,25 @@ const SPECIFIED_BITRATE = 3000;
  *   },
  * ]
  */
-function parseMoviesWithBitrateThreshold(movieLibrary, requiredBitrate) {
+function parseMoviesWithBitrateThreshold(movieLibrary) {
   return movieLibrary.MediaContainer.Video
-    .filter((videoMetadata) => Number.parseInt(videoMetadata.Media['@_bitrate'], 10) < requiredBitrate)
-    .map((videoMetadata) => ({
-      title: videoMetadata['@_title'],
-      bitrate: Number.parseInt(videoMetadata.Media['@_bitrate'], 10),
-    }));
+    .filter(doesVideoMeetThreshold)
+    .map((videoMetadata) => {
+      const title = plexVideoUtils.getTitle(videoMetadata);
+      const mediaMetadata = plexVideoUtils.getMedia(videoMetadata);
+
+      const bitrate = plexMediaUtils.getMediaBitrate(mediaMetadata);
+      const resolution = plexMediaUtils.getMediaResolution(mediaMetadata);
+
+      const bitrateThreshold = RESOLUTION_TO_REQUIRED_BITRATE_MAPPING[resolution];
+
+      return {
+        title,
+        bitrate,
+        resolution,
+        bitrateThreshold,
+      };
+    });
 }
 
 /**
@@ -81,7 +101,7 @@ function parseMoviesWithBitrateThreshold(movieLibrary, requiredBitrate) {
  *   }
  * }
  */
-async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) {
+async function parseEpisodesWithBitrateThreshold(showsLibrary) {
   // paths to get information about each show's seasons
   const seasonMetadataPaths = showsLibrary.MediaContainer.Directory
     .map((x) => x['@_key']);
@@ -90,21 +110,27 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) 
   const allEpisodesMetadata = await fetchEpisodesVideoMetadata(seasonMetadataPaths);
 
   const episodesNotMeetingThreshold = allEpisodesMetadata
-    .filter((episodeData) => !Array.isArray(episodeData.Media) && episodeData.Media['@_bitrate'] < requiredBitrate);
+    .filter(doesVideoMeetThreshold);
 
   return episodesNotMeetingThreshold
-    .reduce((acc, episodeData) => {
-      const showName = episodeData['@_grandparentTitle'];
-      const seasonName = episodeData['@_parentTitle'];
-      const episodeName = episodeData['@_title'];
-      const episodeBitrate = Number.parseInt(episodeData.Media['@_bitrate'], 10);
+    .reduce((acc, episodeVideoMetadata) => {
+      const mediaMetadata = plexVideoUtils.getMedia(episodeVideoMetadata);
+      const showName = plexVideoUtils.getGrandparentTitle(episodeVideoMetadata);
+      const seasonName = plexVideoUtils.getParentTitle(episodeVideoMetadata);
+      const episodeName = plexVideoUtils.getTitle(episodeVideoMetadata);
+
+      const bitrate = plexMediaUtils.getMediaBitrate(mediaMetadata);
+      const resolution = plexMediaUtils.getMediaResolution(mediaMetadata);
+      const bitrateThreshold = RESOLUTION_TO_REQUIRED_BITRATE_MAPPING[resolution];
 
       // pop a new entry in for the show
       if (!acc[showName]) {
         return {
           ...acc,
           [showName]: {
-            [seasonName]: [{ title: episodeName, bitrate: episodeBitrate }],
+            [seasonName]: [{
+              title: episodeName, bitrate, bitrateThreshold, resolution,
+            }],
           },
         };
       }
@@ -115,7 +141,9 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) 
           ...acc,
           [showName]: {
             ...acc[showName],
-            [seasonName]: [{ title: episodeName, bitrate: episodeBitrate }],
+            [seasonName]: [{
+              title: episodeName, bitrate, bitrateThreshold, resolution,
+            }],
           },
         };
       }
@@ -128,9 +156,38 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) 
           ...acc[showName],
           [seasonName]: [
             ...acc[showName][seasonName],
-            { title: episodeName, bitrate: episodeBitrate },
+            {
+              title: episodeName, bitrate, bitrateThreshold, resolution,
+            },
           ],
         },
       };
     }, {});
+}
+
+/**
+ * Helper to check if a given video object meets the bitrate requirement
+ * @param {object} videoMetadata A plex video object
+ * @returns {boolean} Whether the threshold is met
+ */
+function doesVideoMeetThreshold(videoMetadata) {
+  const mediaMetadata = plexVideoUtils.getMedia(videoMetadata);
+
+  if (Array.isArray(mediaMetadata)) {
+    return false;
+  }
+
+  const bitrate = plexMediaUtils.getMediaBitrate(mediaMetadata);
+  const resolution = plexMediaUtils.getMediaResolution(mediaMetadata);
+
+  const bitrateThreshold = RESOLUTION_TO_REQUIRED_BITRATE_MAPPING[resolution];
+
+  // if we have a resolution that there's no config for, let's
+  // assume the threshold fails, and we can investigate manually
+  if (!bitrateThreshold) {
+    console.error(`Unrecognised resolution: ${resolution}`);
+    return false;
+  }
+
+  return bitrate < bitrateThreshold;
 }
