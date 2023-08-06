@@ -1,4 +1,4 @@
-import { getFromRemoteHost, fetchLocalXmlData } from '../utils';
+import { getFromRemoteHost, fetchLocalXmlData } from '../utils/remote';
 
 import 'dotenv/config';
 /**
