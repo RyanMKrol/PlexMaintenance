@@ -102,12 +102,14 @@ function produceTvBitrateReport(data) {
  * @returns {Function} The method to call to wrap the bitrate text in colour
  */
 function getBitrateStringDecorationFn(itemBitrate, bitrateThreshold) {
-  if (itemBitrate < bitrateThreshold / 2) {
+  if (itemBitrate < bitrateThreshold / 4) {
     return chalk.whiteBright.bgRedBright.bold;
+  } if (itemBitrate < bitrateThreshold / 2) {
+    return chalk.blackBright.bgRgb(255, 140, 0).bold;
   } if (itemBitrate < ((bitrateThreshold * 3) / 4)) {
     return chalk.blackBright.bgYellowBright.bold;
   }
-  return chalk.whiteBright.bgBlueBright.bold;
+  return chalk.blackBright.bgRgb(46, 139, 87).bold;
 }
 
 export {

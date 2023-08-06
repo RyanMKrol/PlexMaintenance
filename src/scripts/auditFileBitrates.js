@@ -14,12 +14,12 @@ const RESOLUTION_TO_REQUIRED_BITRATE_MAPPING = {
   // eslint-disable-next-line quote-props
   '720': 5000,
   // eslint-disable-next-line quote-props
-  '576': 2500,
+  '576': 300,
+  // eslint-disable-next-line quote-props
+  'sd': 1000,
+  // eslint-disable-next-line quote-props
+  '480': 2500,
 };
-
-console.log(RESOLUTION_TO_REQUIRED_BITRATE_MAPPING);
-
-const SPECIFIED_BITRATE = 3000;
 
 (async function main() {
   console.log('Auditing File Bitrates...');
@@ -31,7 +31,6 @@ const SPECIFIED_BITRATE = 3000;
 
   const episodesNotMeetingBitrateThreshold = await parseEpisodesWithBitrateThreshold(
     plexTelevisionLibrary,
-    SPECIFIED_BITRATE,
   );
 
   console.log('\n====== Flagging these movies for bitrate:');
@@ -39,10 +38,7 @@ const SPECIFIED_BITRATE = 3000;
   movieReport.forEach((item) => console.log(item));
 
   console.log('\n====== Flagging these tv episodes for bitrate:');
-  const tvReport = produceTvBitrateReport(
-    episodesNotMeetingBitrateThreshold,
-    SPECIFIED_BITRATE,
-  );
+  const tvReport = produceTvBitrateReport(episodesNotMeetingBitrateThreshold);
   tvReport.forEach((item) => console.log(item));
 }());
 
