@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "",
   "type": "module",
-  "//" : "experimental-specifier-resolution=node allows me to not have to specify .../index.js in my imports",
+  "//": "experimental-specifier-resolution=node allows me to not have to specify .../index.js in my imports",
   "scripts": {
     "_auditDuplicateFiles": "node --experimental-specifier-resolution=node src/scripts/auditDuplicateFiles",
     "_auditFileBitrates": "node --experimental-specifier-resolution=node src/scripts/auditFileBitrates",
@@ -31,6 +31,7 @@
     "eslint-plugin-jsdoc": "^46.4.6"
   },
   "dependencies": {
+    "chalk": "^5.3.0",
     "dotenv": "^16.3.1",
     "fast-xml-parser": "^4.2.7",
     "node-fetch": "^3.3.2"

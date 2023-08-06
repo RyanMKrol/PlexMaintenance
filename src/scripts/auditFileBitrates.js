@@ -2,6 +2,7 @@
 import { fetchRawPlexMovieLibraryData, fetchRawPlexTelevisionLibraryData, fetchEpisodesVideoMetadata } from '../remote';
 
 import 'dotenv/config';
+import { produceMovieBitrateReport, produceTvBitrateReport } from '../report';
 
 const SPECIFIED_BITRATE = 3000;
 
@@ -15,35 +16,70 @@ const SPECIFIED_BITRATE = 3000;
     plexMovieLibrary,
     SPECIFIED_BITRATE,
   );
+
   const episodesNotMeetingBitrateThreshold = await parseEpisodesWithBitrateThreshold(
     plexTelevisionLibrary,
     SPECIFIED_BITRATE,
   );
 
-  console.log('These movies do not meet the specified bitrate:');
-  console.log(JSON.stringify(moviesNotMeetingBitrateThreshold, null, 2));
+  console.log('\n====== Flagging these movies for bitrate:');
+  const movieReport = produceMovieBitrateReport(
+    moviesNotMeetingBitrateThreshold,
+    SPECIFIED_BITRATE,
+  );
+  movieReport.forEach((item) => console.log(item));
 
-  console.log('These episodes do not meet the specified bitrate:');
-  console.log(JSON.stringify(episodesNotMeetingBitrateThreshold, null, 2));
+  console.log('\n====== Flagging these tv episodes for bitrate:');
+  const tvReport = produceTvBitrateReport(
+    episodesNotMeetingBitrateThreshold,
+    SPECIFIED_BITRATE,
+  );
+  tvReport.forEach((item) => console.log(item));
 }());
 
 /**
  * Audits movies that are below the specified bitrate
  * @param {Array<object>} movieLibrary Every movie item
  * @param {number} requiredBitrate The bitrate threshold
- * @returns {Array<string>} The titles of movies that don't hit the bitrate target
+ * @returns {Array<object>} The movies that don't meet the bitrate target
+ *
+ * The output will look something like:
+ * [
+ *   {
+ *     "title": "Blade Runner",
+ *     "bitrate": 1234
+ *   },
+ *   {
+ *     "title": "Blade Runner 2049",
+ *     "bitrate": 1234
+ *   },
+ * ]
  */
 function parseMoviesWithBitrateThreshold(movieLibrary, requiredBitrate) {
   return movieLibrary.MediaContainer.Video
     .filter((videoMetadata) => Number.parseInt(videoMetadata.Media['@_bitrate'], 10) < requiredBitrate)
-    .map((videoMetadata) => videoMetadata['@_title']);
+    .map((videoMetadata) => ({
+      title: videoMetadata['@_title'],
+      bitrate: Number.parseInt(videoMetadata.Media['@_bitrate'], 10),
+    }));
 }
 
 /**
  * Audits tv episodes that are below the specified bitrate
  * @param {Array<object>} showsLibrary Every show item
  * @param {number} requiredBitrate The bitrate threshold
- * @returns {Array<object>} The episodes that don't hit the bitrate target
+ * @returns {object} The episodes that don't hit the bitrate target
+ *
+ * The output will look something like:
+ * {
+ *   Breaking Bad: {
+ *     Season 1: [
+ *       {title: Episode 1, bitrate: 1234}
+ *       {title: Episode 2, bitrate: 1234}
+ *     ],
+ *     Season 2: [...]
+ *   }
+ * }
  */
 async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) {
   // paths to get information about each show's seasons
@@ -56,24 +92,19 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) 
   const episodesNotMeetingThreshold = allEpisodesMetadata
     .filter((episodeData) => !Array.isArray(episodeData.Media) && episodeData.Media['@_bitrate'] < requiredBitrate);
 
-  const maxEpisodeTitleLength = episodesNotMeetingThreshold
-    .reduce((acc, episode) => (acc > episode['@_title'].length ? acc : episode['@_title'].length), 0);
-
   return episodesNotMeetingThreshold
     .reduce((acc, episodeData) => {
       const showName = episodeData['@_grandparentTitle'];
       const seasonName = episodeData['@_parentTitle'];
       const episodeName = episodeData['@_title'];
-      const episodeBitrate = episodeData.Media['@_bitrate'];
-
-      const paddedEpisodeName = episodeName.padEnd(maxEpisodeTitleLength, ' ');
+      const episodeBitrate = Number.parseInt(episodeData.Media['@_bitrate'], 10);
 
       // pop a new entry in for the show
       if (!acc[showName]) {
         return {
           ...acc,
           [showName]: {
-            [seasonName]: [`${paddedEpisodeName} - ${episodeBitrate}`],
+            [seasonName]: [{ title: episodeName, bitrate: episodeBitrate }],
           },
         };
       }
@@ -84,7 +115,7 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) 
           ...acc,
           [showName]: {
             ...acc[showName],
-            [seasonName]: [`${paddedEpisodeName} - ${episodeBitrate}`],
+            [seasonName]: [{ title: episodeName, bitrate: episodeBitrate }],
           },
         };
       }
@@ -97,7 +128,7 @@ async function parseEpisodesWithBitrateThreshold(showsLibrary, requiredBitrate) 
           ...acc[showName],
           [seasonName]: [
             ...acc[showName][seasonName],
-            `${paddedEpisodeName} - ${episodeBitrate}`,
+            { title: episodeName, bitrate: episodeBitrate },
           ],
         },
       };
