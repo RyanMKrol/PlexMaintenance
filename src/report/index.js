@@ -6,6 +6,10 @@ import chalk from 'chalk';
  * @param {Array<object>} data array of objects with the title and bitrate of a movie
  * @param {number} bitrateThreshold the target bitrate
  * @returns {Array<string>} An array of strings to be printed out
+ *
+ * Output will look like:
+ * Movie with an extra long name that goes all the way out here - 920
+ * Movie with a shorter nanem                                   - 2110
  */
 function produceMovieBitrateReport(data, bitrateThreshold) {
   // display items in ascending order of bitrates
@@ -26,11 +30,20 @@ function produceMovieBitrateReport(data, bitrateThreshold) {
  * @param {Array<object>} data array of objects with the title and bitrate of a movie
  * @param {number} bitrateThreshold the target bitrate
  * @returns {Array<string>} An array of strings to be printed out
+ *
+ * Output will look like:
+ * Adventure Time
+ * └── Season 1
+ *     └── Tree Trunks                    2855
+ *     └── Memories of Boom Boom Mountain 2698
+ *     └── City of Thieves                2983
+ *     └── The Duke                       2742
+ *     └── Freak City                     2596
  */
 function produceTvBitrateReport(data, bitrateThreshold) {
   const outputStrings = [];
-  const showTitles = Object.keys(data);
 
+  const showTitles = Object.keys(data);
   showTitles.forEach((showTitle) => {
     outputStrings.push(`${showTitle}`);
 
